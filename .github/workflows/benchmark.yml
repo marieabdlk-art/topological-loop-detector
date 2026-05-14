@@ -8,7 +8,7 @@ on:
 jobs:
   test-and-benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -23,6 +23,8 @@ jobs:
         run: pytest -q
       - name: Small benchmark
         run: python experiments/run_vnext1.py
+      - name: Multi-seed smoke benchmark
+        run: python experiments/run_multiseed.py --seeds 0 1 --n-per-regime 5 --split-mode trajectory
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -32,3 +34,9 @@ jobs:
             per_regime.csv
             trigger_trajectory.csv
             trigger_summary.csv
+            multiseed_summary_raw.csv
+            multiseed_summary_stats.csv
+            multiseed_per_regime.csv
+            multiseed_fpr_stats.csv
+            multiseed_tpr_stats.csv
+            multiseed_trigger_stats.csv
