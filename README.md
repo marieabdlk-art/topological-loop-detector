@@ -25,35 +25,32 @@ The detector output can be used by downstream recovery systems later, but this r
 
 ## Current results
 
-See:
+See the full report:
 
 ```text
 reports/latest_results.md
 ```
 
-Summary from the latest recorded vNext.3 Colab run:
-
-| Metric | Value |
-|---|---:|
-| `topo_max_accuracy` | 0.585333 |
-| `temporal_accuracy` | 0.951200 |
-| `combined_accuracy` | 0.968622 |
-| `generic_trigger_acc` | 0.537778 |
-| `vnext1_trigger_acc` | 0.973333 |
-| `vnext2_trigger_acc` | 0.920000 |
-| `vnext3_trigger_acc` | 0.920000 |
-
-Important interpretation:
-
-```text
-classifier-gated vNext1 trigger was stronger than hard/conditional spiral rejection variants
-```
-
-The repository now also includes a separate `geometry_only` baseline. Regenerate current repository-level numbers with:
+Repository-generated multiseed benchmark:
 
 ```bash
 python experiments/run_multiseed.py --seeds 0 1 2 3 4 --n-per-regime 30 --split-mode both
 ```
+
+Mean ± std across 5 seeds:
+
+| Split mode | topo_max acc | geometry acc | temporal H1 acc | combined acc | generic trigger acc | vNext1 trigger acc |
+|---|---:|---:|---:|---:|---:|---:|
+| `trajectory` | 0.5871 ± 0.0024 | 0.8292 ± 0.0115 | 0.9121 ± 0.0062 | **0.9333 ± 0.0065** | 0.5096 ± 0.0103 | **0.9481 ± 0.0101** |
+| `hard_generalization` | 0.4264 ± 0.0031 | 0.5833 ± 0.0132 | 0.6469 ± 0.0095 | **0.6645 ± 0.0088** | 0.4313 ± 0.0061 | **0.7280 ± 0.0168** |
+
+Key interpretation:
+
+```text
+combined_hybrid > temporal_h1_profile > geometry_only > topo_max_only
+```
+
+The hard-generalization split is substantially weaker than the trajectory split and is the main next research target.
 
 ## Core idea
 
@@ -98,21 +95,23 @@ shrinking_loop_to_goal
 self_intersect_convergence
 ```
 
+Main remaining hard negative:
+
+```text
+near_miss_spiral
+```
+
+Even the current best model has FPR around 0.327 on trajectory split and 0.375 on hard-generalization split.
+
 ## Model comparisons
 
-The benchmark now compares:
+The benchmark compares:
 
 ```text
 topo_max_only
 geometry_only
 temporal_h1_profile
 combined_hybrid
-```
-
-Main expected result pattern:
-
-```text
-topo_max_only < temporal_h1_profile < combined_hybrid
 ```
 
 The `geometry_only` baseline is included to separate topology-specific signal from non-topological geometric cues.
@@ -147,7 +146,7 @@ topoloop-benchmark --seed 42 --n-per-regime 30
 Multi-seed benchmark:
 
 ```bash
-python experiments/run_multiseed.py --seeds 0 1 2 3 4 --n-per-regime 30
+python experiments/run_multiseed.py --seeds 0 1 2 3 4 --n-per-regime 30 --split-mode both
 ```
 
 ## Structure
@@ -165,4 +164,10 @@ reports/                report templates
 
 Experimental research package. Not a universal solved loop detector.
 
-Main current limitation: near-miss / almost-loop trajectories remain the hardest false-positive class.
+Main current limitations:
+
+```text
+near_miss / almost-loop false positives
+weak hard-generalization recall on true loop families
+no real LLM-agent traces yet
+```
