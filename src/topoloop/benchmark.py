@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -44,20 +45,32 @@ def feature_sets(k_bars: int = 8) -> dict[str, list[str]]:
     }
 
 
-def _safe_stratification(meta: pd.DataFrame) -> pd.Series | None:
+def _valid_stratification(candidate: pd.Series, n_samples: int, test_size: float = 0.30) -> bool:
+    counts = candidate.value_counts()
+    if counts.min() < 2:
+        return False
+
+    n_classes = len(counts)
+    n_test = math.ceil(n_samples * test_size)
+    n_train = n_samples - n_test
+    return n_test >= n_classes and n_train >= n_classes
+
+
+def _safe_stratification(meta: pd.DataFrame, test_size: float = 0.30) -> pd.Series | None:
     """Choose the most specific valid stratification available.
 
-    Full benchmark runs can stratify by regime+difficulty. Tiny CI smoke tests may
-    have only one item per regime+difficulty cell, which is invalid for
-    StratifiedShuffleSplit. In that case we fall back to regime-only
-    stratification. If even regime is too sparse, we fall back to no stratify.
+    Full benchmark runs can stratify by regime+difficulty. Tiny CI smoke tests
+    may be too small for stratified splitting. In that case we fall back to a
+    coarser stratification, and finally to an unstratified split.
     """
+    n_samples = len(meta)
+
     by_regime_and_difficulty = meta["regime"] + "::" + meta["difficulty"]
-    if by_regime_and_difficulty.value_counts().min() >= 2:
+    if _valid_stratification(by_regime_and_difficulty, n_samples, test_size):
         return by_regime_and_difficulty
 
     by_regime = meta["regime"]
-    if by_regime.value_counts().min() >= 2:
+    if _valid_stratification(by_regime, n_samples, test_size):
         return by_regime
 
     return None
@@ -74,10 +87,11 @@ def split_trajectory_ids(feat: pd.DataFrame, seed: int, split_mode: str = "traje
     if split_mode != "trajectory":
         raise ValueError(f"Unknown split_mode: {split_mode}")
 
-    strat = _safe_stratification(meta)
+    test_size = 0.30
+    strat = _safe_stratification(meta, test_size=test_size)
     return train_test_split(
         meta["traj_id"].values,
-        test_size=0.30,
+        test_size=test_size,
         random_state=seed,
         stratify=strat,
     )
