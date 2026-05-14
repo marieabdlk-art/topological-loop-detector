@@ -44,18 +44,37 @@ def feature_sets(k_bars: int = 8) -> dict[str, list[str]]:
     }
 
 
+def _safe_stratification(meta: pd.DataFrame) -> pd.Series | None:
+    """Choose the most specific valid stratification available.
+
+    Full benchmark runs can stratify by regime+difficulty. Tiny CI smoke tests may
+    have only one item per regime+difficulty cell, which is invalid for
+    StratifiedShuffleSplit. In that case we fall back to regime-only
+    stratification. If even regime is too sparse, we fall back to no stratify.
+    """
+    by_regime_and_difficulty = meta["regime"] + "::" + meta["difficulty"]
+    if by_regime_and_difficulty.value_counts().min() >= 2:
+        return by_regime_and_difficulty
+
+    by_regime = meta["regime"]
+    if by_regime.value_counts().min() >= 2:
+        return by_regime
+
+    return None
+
+
 def split_trajectory_ids(feat: pd.DataFrame, seed: int, split_mode: str = "trajectory"):
     meta = feat[["traj_id", "regime", "difficulty"]].drop_duplicates()
 
     if split_mode == "hard_generalization":
-        train_ids = meta[meta["difficulty"].isin(["easy", "medium"])]["traj_id"].values
+        train_ids = meta[meta["difficulty"].isin(["easy", "medium"] )]["traj_id"].values
         test_ids = meta[meta["difficulty"].isin(["hard"] )]["traj_id"].values
         return train_ids, test_ids
 
     if split_mode != "trajectory":
         raise ValueError(f"Unknown split_mode: {split_mode}")
 
-    strat = meta["regime"] + "::" + meta["difficulty"]
+    strat = _safe_stratification(meta)
     return train_test_split(
         meta["traj_id"].values,
         test_size=0.30,
