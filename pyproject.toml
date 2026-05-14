@@ -19,6 +19,9 @@ dependencies = [
     "gudhi>=3.9",
 ]
 
+[project.scripts]
+topoloop-benchmark = "topoloop.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
