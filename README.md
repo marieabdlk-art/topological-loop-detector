@@ -23,6 +23,38 @@ agent intervention logic
 
 The detector output can be used by downstream recovery systems later, but this repository intentionally keeps recovery separate.
 
+## Current results
+
+See:
+
+```text
+reports/latest_results.md
+```
+
+Summary from the latest recorded vNext.3 Colab run:
+
+| Metric | Value |
+|---|---:|
+| `topo_max_accuracy` | 0.585333 |
+| `temporal_accuracy` | 0.951200 |
+| `combined_accuracy` | 0.968622 |
+| `generic_trigger_acc` | 0.537778 |
+| `vnext1_trigger_acc` | 0.973333 |
+| `vnext2_trigger_acc` | 0.920000 |
+| `vnext3_trigger_acc` | 0.920000 |
+
+Important interpretation:
+
+```text
+classifier-gated vNext1 trigger was stronger than hard/conditional spiral rejection variants
+```
+
+The repository now also includes a separate `geometry_only` baseline. Regenerate current repository-level numbers with:
+
+```bash
+python experiments/run_multiseed.py --seeds 0 1 2 3 4 --n-per-regime 30 --split-mode both
+```
+
 ## Core idea
 
 Most loop detectors rely on exact repeats, cosine similarity, token repetition, timeout, or max-step limits. This project uses H1 persistent homology on sliding windows to detect when a trajectory forms a loop-like structure.
