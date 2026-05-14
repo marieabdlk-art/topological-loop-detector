@@ -52,6 +52,26 @@ combined_hybrid > temporal_h1_profile > geometry_only > topo_max_only
 
 The hard-generalization split is substantially weaker than the trajectory split and is the main next research target.
 
+## Real LLM pilot: TinyLlama v10 Master
+
+Beyond the synthetic benchmark, the project also has a real-model pilot on a TinyLlama generation trace.
+
+In that experiment, direct H1 persistence on raw embeddings was blind because the representation cloud collapsed during repeated generation. A lagged embedding reconstruction:
+
+```text
+(V_t, V_{t-lag})
+```
+
+made the hidden loop topologically visible. Around generation step ~30, the H1 signal rose to approximately `0.018`, and temporal bridging stabilized the detector output.
+
+See:
+
+```text
+docs/real_llm_pilot_v10_master.md
+```
+
+This is the strongest reason the project can move toward a production observability tool: the method is not only a synthetic 2D benchmark idea, but a representation-dependent detector that has already shown signal on a real LLM trace.
+
 ## Core idea
 
 Most loop detectors rely on exact repeats, cosine similarity, token repetition, timeout, or max-step limits. This project uses H1 persistent homology on sliding windows to detect when a trajectory forms a loop-like structure.
@@ -169,5 +189,5 @@ Main current limitations:
 ```text
 near_miss / almost-loop false positives
 weak hard-generalization recall on true loop families
-no real LLM-agent traces yet
+real LLM pilot exists, but real-trace benchmark is not implemented yet
 ```
