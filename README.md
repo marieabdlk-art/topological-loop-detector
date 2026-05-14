@@ -8,6 +8,21 @@ Current best architecture:
 H1-profile temporal detector + hybrid classifier + classifier-gated online trigger
 ```
 
+## Scope
+
+This repository focuses on **detection only**.
+
+Out of scope for this repository:
+
+```text
+escape / recovery / rescue policies
+context surgery
+orthogonal escape
+agent intervention logic
+```
+
+The detector output can be used by downstream recovery systems later, but this repository intentionally keeps recovery separate.
+
 ## Core idea
 
 Most loop detectors rely on exact repeats, cosine similarity, token repetition, timeout, or max-step limits. This project uses H1 persistent homology on sliding windows to detect when a trajectory forms a loop-like structure.
@@ -51,11 +66,24 @@ shrinking_loop_to_goal
 self_intersect_convergence
 ```
 
-## Main result pattern
+## Model comparisons
+
+The benchmark now compares:
+
+```text
+topo_max_only
+geometry_only
+temporal_h1_profile
+combined_hybrid
+```
+
+Main expected result pattern:
 
 ```text
 topo_max_only < temporal_h1_profile < combined_hybrid
 ```
+
+The `geometry_only` baseline is included to separate topology-specific signal from non-topological geometric cues.
 
 Online trigger result pattern:
 
@@ -78,12 +106,25 @@ pip install -r requirements.txt
 python experiments/run_vnext1.py
 ```
 
+CLI:
+
+```bash
+topoloop-benchmark --seed 42 --n-per-regime 30
+```
+
+Multi-seed benchmark:
+
+```bash
+python experiments/run_multiseed.py --seeds 0 1 2 3 4 --n-per-regime 30
+```
+
 ## Structure
 
 ```text
 src/topoloop/           detector package
-experiments/            benchmark runner
-tests/                  unit tests
+experiments/            benchmark runners
+tests/                  unit and smoke tests
+docs/                   architecture and benchmark docs
 .github/workflows/      GitHub Actions benchmark
 reports/                report templates
 ```
