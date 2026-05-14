@@ -40,6 +40,7 @@ def main():
 
     feature_sets = {
         "topo_max_only": ["topo_max"],
+        "geometry_only": BASELINE_COLS,
         "temporal_h1_profile": H1_PROFILE_COLS + topk_cols(K) + TEMPORAL_COLS,
         "combined_hybrid": BASELINE_COLS + H1_PROFILE_COLS + topk_cols(K) + TEMPORAL_COLS + REJECTION_COLS,
     }
